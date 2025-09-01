@@ -2,3 +2,6 @@ opencv-python
 pillow
 streamlit
 matplotlib
+ultralytics
+pandas
+plotly

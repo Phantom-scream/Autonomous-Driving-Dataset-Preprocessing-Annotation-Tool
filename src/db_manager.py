@@ -48,3 +48,21 @@ def fetch_by_image(image_path):
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM annotations WHERE image_path = ?", (str(image_path),))
         return cursor.fetchall()
+
+def fetch_all_annotations():
+    """Return all annotations as list of dicts (used by augment.py)."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT image_path, label, x1, y1, x2, y2 FROM annotations")
+        rows = cursor.fetchall()
+    return [
+        {
+            "image_path": r[0],
+            "label": r[1],
+            "x1": r[2],
+            "y1": r[3],
+            "x2": r[4],
+            "y2": r[5],
+        }
+        for r in rows
+    ]
