@@ -1,7 +1,5 @@
-# src/detector.py
 from ultralytics import YOLO
 
-# Load pretrained YOLO model (small, good for speed)
 model = YOLO("yolov8n.pt")
 
 def suggest_boxes(image_path):
@@ -9,7 +7,7 @@ def suggest_boxes(image_path):
     Run YOLOv8 on an image or image path and return suggested bounding boxes.
     Returns list of tuples: (x1, y1, x2, y2, score, label)
     """
-    results = model(image_path)  # inference
+    results = model(image_path)
     suggestions = []
     for b in results[0].boxes:
         x1, y1, x2, y2 = map(int, b.xyxy[0].tolist())

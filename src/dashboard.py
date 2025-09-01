@@ -10,7 +10,6 @@ from config import DB_PATH, LABELS as CONFIG_LABELS
 
 st.set_page_config(page_title="Dataset Annotation Dashboard", layout="wide")
 
-# --- DB helpers ---
 @st.cache_resource
 def get_conn():
     return sqlite3.connect(DB_PATH, check_same_thread=False)
@@ -22,7 +21,7 @@ def load_annotations_df():
         "SELECT id, image_path, label, x1, y1, x2, y2, created_at FROM annotations",
         conn
     )
-    # Derived columns
+
     df["width"] = df["x2"] - df["x1"]
     df["height"] = df["y2"] - df["y1"]
     df["area"] = (df["width"] * df["height"]).clip(lower=0)
@@ -34,10 +33,8 @@ if df.empty:
     st.warning("No annotations found.")
     st.stop()
 
-# Dynamic label universe (merge configured + discovered)
 all_labels = sorted(set(CONFIG_LABELS).union(df["label"].unique()))
 
-# --- Sidebar controls ---
 with st.sidebar:
     st.header("Controls")
     label_filter = st.multiselect("Labels", all_labels, default=all_labels)
@@ -62,7 +59,6 @@ with st.sidebar:
     )
     max_images = st.slider("Max images in selector", 10, 500, 200, step=10)
 
-# --- Filter dataframe ---
 mask = df["label"].isin(label_filter)
 if img_origin_filter == "Original only":
     mask &= ~df["is_augmented"]
@@ -70,7 +66,6 @@ elif img_origin_filter == "Augmented only":
     mask &= df["is_augmented"]
 fdf = df[mask].copy()
 
-# --- KPI Row ---
 total_images = fdf["image_path"].nunique()
 total_ann = len(fdf)
 avg_boxes = (total_ann / total_images) if total_images else 0
@@ -80,7 +75,6 @@ col2.metric("Annotations", total_ann)
 col3.metric("Avg boxes/image", f"{avg_boxes:.2f}")
 col4.metric("Distinct labels", fdf["label"].nunique())
 
-# --- Label Distribution (Interactive) ---
 st.subheader("Label Distribution")
 label_counts = (
     fdf.groupby("label")["id"].count().reset_index().rename(columns={"id": "count"})
@@ -96,7 +90,6 @@ fig_labels = px.bar(
 fig_labels.update_layout(showlegend=False)
 st.plotly_chart(fig_labels, use_container_width=True)
 
-# --- Annotations per Image (Interactive) ---
 st.subheader("Annotations per Image")
 ann_per_image = fdf.groupby("image_path")["id"].count().reset_index(name="ann_count")
 fig_img_hist = px.histogram(
@@ -108,15 +101,12 @@ fig_img_hist = px.histogram(
 )
 st.plotly_chart(fig_img_hist, use_container_width=True)
 
-# --- Image selector preparation ---
-# Aggregate counts for sorting
 ann_count_map = dict(zip(ann_per_image["image_path"], ann_per_image["ann_count"]))
 img_paths = list(ann_count_map.keys())
 
 if sort_images_by == "Annotation Count":
     img_paths.sort(key=lambda p: ann_count_map[p], reverse=True)
 elif sort_images_by == "Newest First":
-    # approximate by max annotation id for that image
     max_id_map = fdf.groupby("image_path")["id"].max().to_dict()
     img_paths.sort(key=lambda p: max_id_map[p], reverse=True)
 elif sort_images_by == "Oldest First":
@@ -130,7 +120,6 @@ img_paths = img_paths[:max_images]
 st.subheader("Image Browser")
 selected_image = st.selectbox("Choose an image", img_paths)
 
-# --- Display selected image with boxes ---
 if selected_image:
     raw_img = cv2.imread(selected_image)
     if raw_img is None:
@@ -169,9 +158,8 @@ if selected_image:
         draw_rgb = cv2.cvtColor(draw, cv2.COLOR_BGR2RGB)
         st.image(Image.fromarray(draw_rgb), caption=selected_image, use_container_width=True)
 
-# --- Heatmap Section ---
 st.subheader("Spatial Heatmap")
-# Determine max canvas
+
 img_dims = {}
 for p in fdf["image_path"].unique():
     img = cv2.imread(p)
@@ -229,7 +217,6 @@ else:
     fig_heat.update_layout(margin=dict(l=0, r=0, t=40, b=0), coloraxis_showscale=True)
     st.plotly_chart(fig_heat, use_container_width=True)
 
-# --- Raw Table (optional) ---
 if show_table:
     st.subheader("Filtered Annotations Table")
     st.dataframe(

@@ -5,29 +5,25 @@ import matplotlib.pyplot as plt
 import cv2
 
 def run_pipeline():
-    print("🚀 Starting dataset pipeline...")
+    print("Starting dataset pipeline...")
 
-    # Step 1: Preprocess all raw images
-    print("\n🔹 Step 1: Preprocessing images...")
+    print("\n Step 1: Preprocessing images...")
     preprocess_dataset()
 
-    # Step 2: Annotate images
-    print("\n🔹 Step 2: Annotating images...")
+    print("\n Step 2: Annotating images...")
     annotate_dataset()
 
-    # Step 3: Show summary
-    print("\n🔹 Step 3: Dataset summary:")
-    annotations = fetch_annotations(limit=1000)  # fetch all or limit for demo
+    print("\n Step 3: Dataset summary:")
+    annotations = fetch_annotations(limit=1000) 
     label_counts = {}
     for ann in annotations:
-        label = ann[2]  # label is the 3rd column in DB
+        label = ann[2] 
         label_counts[label] = label_counts.get(label, 0) + 1
 
-    print("\n📊 Annotation counts per label:")
+    print("\n Annotation counts per label:")
     for label, count in label_counts.items():
         print(f"{label}: {count}")
 
-    # Optional: show one annotated image
     if annotations:
         sample = annotations[0]
         img_path = sample[1]

@@ -4,10 +4,9 @@ from db_manager import init_db, insert_annotation
 from config import PROCESSED_DIR, LABELS
 from detector import suggest_boxes
 
-# Globals for drawing boxes
 drawing = False
 x1, y1, x2, y2 = -1, -1, -1, -1
-current_boxes = []  # stores accepted bounding boxes for current image
+current_boxes = []
 
 
 def draw_box(event, x, y, flags, param):
@@ -20,7 +19,7 @@ def draw_box(event, x, y, flags, param):
     elif event == cv2.EVENT_LBUTTONUP:
         drawing = False
         x2, y2 = x, y
-        current_boxes.append(((x1, y1, x2, y2), None))  # None means label not assigned yet
+        current_boxes.append(((x1, y1, x2, y2), None)) 
 
 
 def annotate_image(img_path):
@@ -29,11 +28,10 @@ def annotate_image(img_path):
     clone = img.copy()
     current_boxes = []
 
-    # Load AI-suggested boxes (pass path, not image array)
     try:
         ai_suggestions = suggest_boxes(str(img_path))
     except Exception as e:
-        print(f"⚠️ YOLO suggestion failed: {e}")
+        print(f"YOLO suggestion failed: {e}")
         ai_suggestions = []
 
     for (sx1, sy1, sx2, sy2, score, label) in ai_suggestions:
@@ -45,7 +43,6 @@ def annotate_image(img_path):
     while True:
         display = img.copy()
 
-        # Draw current boxes
         for (coords, label) in current_boxes:
             (bx1, by1, bx2, by2) = coords
             color = (0, 255, 0) if label else (255, 0, 0)
@@ -57,27 +54,27 @@ def annotate_image(img_path):
         cv2.imshow("Annotator", display)
         key = cv2.waitKey(1) & 0xFF
 
-        if key == ord("l"):  # assign label to last drawn/selected box
+        if key == ord("l"): 
             if not current_boxes:
-                print("⚠️ No box to label.")
+                print("No box to label.")
                 continue
             label = input(f"Enter label {LABELS}: ").strip().lower()
             if label not in LABELS:
-                print("⚠️ Invalid label, try again.")
+                print("Invalid label, try again.")
                 continue
             coords, _ = current_boxes[-1]
             current_boxes[-1] = (coords, label)
-            print(f"✅ Assigned label '{label}'")
+            print(f"Assigned label '{label}'")
 
-        elif key == ord("s"):  # save all labeled boxes
+        elif key == ord("s"):
             for (coords, label) in current_boxes:
                 if label:
                     (bx1, by1, bx2, by2) = coords
                     insert_annotation(img_path, label, bx1, by1, bx2, by2)
-            print(f"💾 Saved annotations for {img_path.name}")
+            print(f"Saved annotations for {img_path.name}")
             break
 
-        elif key == ord("q"):  # skip image
+        elif key == ord("q"):
             print(f"⏭ Skipped {img_path.name}")
             break
 
@@ -89,7 +86,7 @@ def annotate_dataset():
     for img_file in PROCESSED_DIR.iterdir():
         if img_file.suffix.lower() not in [".jpg", ".png", ".jpeg"]:
             continue
-        print(f"\n🖼️ Annotating: {img_file.name}")
+        print(f"\nAnnotating: {img_file.name}")
         annotate_image(img_file)
 
 

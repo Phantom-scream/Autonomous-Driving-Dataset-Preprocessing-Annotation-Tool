@@ -6,7 +6,6 @@ from pathlib import Path
 from db_manager import fetch_all_annotations, insert_annotation
 from config import PROCESSED_DIR, DB_PATH
 
-# Augmented images folder
 AUGMENTED_DIR = Path("augmented")
 AUGMENTED_DIR.mkdir(exist_ok=True)
 
@@ -71,7 +70,6 @@ def augment_and_save(img_path, annotations):
         aug_file = AUGMENTED_DIR / f"{base_name}_{aug_name}.jpg"
         cv2.imwrite(str(aug_file), aug_img)
 
-        # Save transformed annotations
         for ann in annotations:
             bbox = (ann["x1"], ann["y1"], ann["x2"], ann["y2"])
             new_bbox = bbox_fn(bbox)
@@ -80,7 +78,7 @@ def augment_and_save(img_path, annotations):
                 ann["label"],
                 new_bbox[0], new_bbox[1], new_bbox[2], new_bbox[3]
             )
-        print(f"✅ Augmented saved: {aug_file.name}")
+        print(f"Augmented saved: {aug_file.name}")
 
 def augment_dataset():
     annotations = fetch_all_annotations()
@@ -92,7 +90,7 @@ def augment_dataset():
             grouped[img_path] = []
         grouped[img_path].append(ann)
 
-    print(f"🔄 Found {len(grouped)} images to augment.")
+    print(f"Found {len(grouped)} images to augment.")
 
     for img_path, anns in grouped.items():
         if not img_path.exists():

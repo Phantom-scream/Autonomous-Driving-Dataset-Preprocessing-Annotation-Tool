@@ -9,15 +9,12 @@ def preprocess_image(image_path, target_size=(640, 480)):
     """Load, resize, and normalize an image."""
     img = cv2.imread(str(image_path))
     if img is None:
-        print(f"⚠️ Could not read {image_path}")
+        print(f"Could not read {image_path}")
         return None
 
-    # Resize
     img_resized = cv2.resize(img, target_size)
 
-    # Normalize brightness/contrast
     img_normalized = cv2.convertScaleAbs(img_resized, alpha=1.2, beta=20)
-    # alpha = contrast, beta = brightness
 
     return img_normalized
 
@@ -33,7 +30,7 @@ def preprocess_dataset():
         if processed is not None:
             save_path = PROCESSED_DIR / img_file.name
             cv2.imwrite(str(save_path), processed)
-            print(f"✅ Processed and saved: {save_path}")
+            print(f"Processed and saved: {save_path}")
 
 if __name__ == "__main__":
     preprocess_dataset()
